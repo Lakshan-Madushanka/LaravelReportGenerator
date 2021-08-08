@@ -26,7 +26,7 @@ trait UserReportGenerateTrait
         }
 
         $groupByQuery = strtolower($request->query('groupBy'));
-        if ($orderByQuery) {
+        if ($groupByQuery) {
             $groupBy = $groupByQuery;
         }
 
@@ -41,9 +41,11 @@ trait UserReportGenerateTrait
         ];
 
         return $this->makeReport
-            ->setMetaData($queryBuilder, $request, $columns, $sortBy, $groupBy, 'All Users Confidential !')
+            ->setMetaData($queryBuilder, $request, $columns, $sortBy, array_search(strtolower($groupBy), $columns),
+                'All Users Confidential !', $orderBy)
             ->generateReport()
             ->editColumn('Gender', ['class' => 'blue'])
+            ->setGroupByTitle('------------')
             ->setCss([
                 '.blue' => 'color:blue',
             ])
@@ -83,6 +85,7 @@ trait UserReportGenerateTrait
             ->setCss([
                 '.visible' => 'display:none',
             ])
+            ->setGroupByTitle('------------')
             ->download('AllUsersWithRoles'.'_'.now());
     }
 

@@ -15,6 +15,7 @@ class GenerateReportService
 {
 
     private string $sortBy = "desc";
+    private string $orderBy = "id";
     private string $type = "pdf";
     private string $title;
     private $query;
@@ -49,7 +50,9 @@ class GenerateReportService
         array $columns,
         string $sortBy,
         string $groupBy = '',
-        string $title = 'Report'
+        string $title = 'Report',
+        string $orderBy = 'id'
+
     ): GenerateReportService {
         $this->request = $request;
         $this->query = $query;
@@ -57,13 +60,17 @@ class GenerateReportService
         $this->sortBy = $sortBy;
         $this->groupBy = $groupBy;
         $this->title = $title;
+        $this->orderBy = $orderBy;
 
         return $this;
     }
 
     public function setDetails()
     {
-        $this->meta = ['Sorted By' => $this->sortBy];
+        $this->meta = [
+            'Ordered By' => $this->orderBy,
+            'Sorted By' => $this->sortBy,
+        ];
 
         //set report type
         if (strtolower($this->request->query('type') === 'excel')) {
