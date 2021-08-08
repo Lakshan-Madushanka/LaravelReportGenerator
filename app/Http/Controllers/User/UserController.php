@@ -4,6 +4,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\GenerateReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Jimmyjs\ReportGenerator\Facades\PdfReportFacade;
@@ -15,6 +16,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class UserController extends Controller
 {
+    private $generateReport;
+
+    public function __construct(GenerateReportService $generateReport)
+    {
+        $this->generateReport = $generateReport;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -75,50 +83,52 @@ class UserController extends Controller
 
     public function allUsersReport(Request $request)
     {
+        $orderBy = 'id';
         $sortBy = 'desc';
-        $type = 'pdf';
+        $groupBy = '';
 
-        //set sort by
-        if (strtolower($request->query('sort_by') === 'asc')) {
+        //set sort by and maa data
+        if (strtolower($request->query('sorBy') === 'asc')) {
             $sortBy = 'asc';
         }
 
-        //set report type
-        if (strtolower($request->query('type') === 'excel')) {
-            $sortBy = 'excel';
-        } elseif (strtolower($request->query('sort_by') === 'csv')) {
-            $sortBy = 'csv';
+        $orderByQuery = strtolower($request->query('orderBy'));
+        if ($orderByQuery) {
+            $orderBy = $orderByQuery;
         }
 
-        $title = 'All Users Report - Confidential';
-        $meta = ['Sorted By' => $sortBy];
+        $groupByQuery = strtolower($request->query('groupBy'));
+        if ($orderByQuery) {
+            $groupBy = $groupByQuery;
+        }
 
-        $queryBuilder = User::select('n_i_c', 'user_id', 'full_name', 'gender')
-            ->orderBy('id', $sortBy);
-
+        $queryBuilder = User::select('n_i_c', 'user_id', 'full_name', 'gender' )
+            ->orderBy($groupBy ? $groupBy : $orderBy, $sortBy);
 
         $columns = [
             'N I C' => 'n_i_c',
             'User Id' => 'user_id',
             'Full Name' => 'full_name',
-            'Gender' => 'gender'
+            'Gender' => 'gender',
         ];
 
-        return PdfReport::of($title, $meta, $queryBuilder, $columns)
-            // ->editColumn('Gender', ['class' => 'righr bold'])
-            // ->limit($request->query('limit'))
-            ->download('AllUsers.pdf');
+        return $this->generateReport
+            ->setMetaData($queryBuilder, $request, $columns, 'allusers', $sortBy, $groupBy)
+            ->generateReport()->editColumn('Gender', ['class' => 'blue'])
+            ->setCss([
+                '.blue' => 'color:blue',
+            ])
+            ->download('AllUsers'.'_'.now());
     }
 
     public function allUsersWithRoles(Request $request)
     {
 
-        $type = 'pdf';
         $sortBy = 'desc';
-        $title = 'All Users Report - Confidential';
-        $meta = ['Sorted By' => $sortBy];
-
-        $this->setReportDetails($request, $type, $sortBy, $title, $meta);
+        //set sort by and maa data
+        if (strtolower($request->query('sorBy') === 'asc')) {
+            $sortBy = 'asc';
+        }
 
         $queryBuilder = DB::table('users')
             ->leftJoin('user_role', 'users.id', '=', 'user_role.user_id')
@@ -136,61 +146,15 @@ class UserController extends Controller
             'Role Id' => 'id',
         ];
 
-        if ($type === 'pdf') {
-            return PdfReport::of($title, $meta, $queryBuilder, $columns)
-                ->editColumn('Role', ['class' => 'bold'])
-                ->editColumn('Role Id', ['class' => 'visible'])
-                ->setCss([
-                    '.visible' => 'display:none',
-                ])
-                ->groupBy('Role Id')
-                //->setGroupByTitle('End of the Section')
-                ->limit($request->query('limit'))
-                ->download('AllUsers.pdf');
-        }
-
-        if ($type === 'excel') {
-            return ExcelReport::of($title, $meta, $queryBuilder, $columns)
-                ->editColumn('Role', ['class' => 'right bold'])
-                ->editColumn('Role Id', ['class' => 'visible'])
-                ->setCss([
-                    '.visible' => 'display:none',
-                ])
-                ->groupBy('Role Id')
-                ->setGroupByTitle('End of the Section')
-                ->limit($request->query('limit'))
-                ->download('AllUsers');
-        }
-
-        if ($type === 'csv') {
-            return CSVReport::of($title, $meta, $queryBuilder, $columns)
-                ->editColumn('Role', ['class' => 'right bold'])
-                ->editColumn('Role Id', ['class' => 'visible'])
-                ->setCss([
-                    '.visible' => 'display:none',
-                ])
-                ->groupBy('Role Id')
-                ->setGroupByTitle('End of the Section')
-                ->limit($request->query('limit'))
-                ->download('AllUsers');
-        }
-
-    }
-
-    public function setReportDetails(Request $request, &$type, &$sortBy, &$title, &$meta)
-    {
-        //set sort by
-        if (strtolower($request->query('sort_by') === 'asc')) {
-            $sortBy = 'asc';
-        }
-
-        //set report type
-        if (strtolower($request->query('type') === 'excel')) {
-            $type = 'excel';
-        } elseif (strtolower($request->query('sort_by') === 'csv')) {
-            $type = 'csv';
-        }
-
+        return $this->generateReport
+            ->setMetaData($queryBuilder, $request, $columns, 'allusers', $sortBy, 'Role Id')
+            ->generateReport()
+            ->editColumn('Role', ['class' => 'bold'])
+            ->editColumn('Role Id', ['class' => 'visible'])
+            ->setCss([
+                '.visible' => 'display:none',
+            ])
+            ->download('AllUsersWithRoles'.'_'.now());
     }
 
 }
