@@ -47,17 +47,16 @@ class GenerateReportService
         $query,
         Request $request,
         array $columns,
-        string $name,
         string $sortBy,
-        string $title = 'Report',
-        string $groupBy = ''
+        string $groupBy = '',
+        string $title = 'Report'
     ): GenerateReportService {
         $this->request = $request;
         $this->query = $query;
         $this->colmns = $columns;
         $this->sortBy = $sortBy;
-        $this->title = $title;
         $this->groupBy = $groupBy;
+        $this->title = $title;
 
         return $this;
     }
@@ -87,13 +86,13 @@ class GenerateReportService
         } elseif ($this->type === 'excel') {
 
             return ExcelReport::of($this->title, $this->meta, $this->query, $this->colmns)
+                ->{$this->groupBy ? 'groupBY' : 'limit'}($this->groupBy)
                 ->limit($this->request->query('limit'));
-
         } else {
 
             return CSVReport::of($this->title, $this->meta, $this->query, $this->colmns)
+                ->{$this->groupBy ? 'groupBY' : 'limit'}($this->groupBy)
                 ->limit($this->request->query('limit'));
-
         }
     }
 }

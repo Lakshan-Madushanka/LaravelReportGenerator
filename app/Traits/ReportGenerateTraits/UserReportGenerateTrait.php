@@ -41,7 +41,7 @@ trait UserReportGenerateTrait
         ];
 
         return $this->makeReport
-            ->setMetaData($queryBuilder, $request, $columns, 'allusers', $sortBy, $groupBy)
+            ->setMetaData($queryBuilder, $request, $columns, $sortBy, $groupBy, 'All Users Confidential !')
             ->generateReport()
             ->editColumn('Gender', ['class' => 'blue'])
             ->setCss([
@@ -76,7 +76,7 @@ trait UserReportGenerateTrait
         ];
 
         return $this->makeReport
-            ->setMetaData($queryBuilder, $request, $columns, 'allusers', $sortBy, 'Role Id')
+            ->setMetaData($queryBuilder, $request, $columns, $sortBy, 'Role Id', 'All users with roles confidential !')
             ->generateReport()
             ->editColumn('Role', ['class' => 'bold'])
             ->editColumn('Role Id', ['class' => 'visible'])
