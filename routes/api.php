@@ -15,12 +15,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
-Route::get('users/{user}', [UserController::class, 'show']);
-
 // generate user reports
 Route::get('users/reports/all-users', [UserController::class, 'allUsersReport']);
 
