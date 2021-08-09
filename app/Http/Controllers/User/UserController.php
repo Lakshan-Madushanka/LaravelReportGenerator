@@ -14,7 +14,10 @@ use ExcelReport;
 use CSVReport;
 use Symfony\Component\HttpFoundation\Response;
 
-
+/**
+ * @group user report generation
+ *
+ */
 class UserController extends Controller
 {
     use UserReportGenerateTrait;
@@ -84,11 +87,25 @@ class UserController extends Controller
         //
     }
 
+    /**
+     * Generate Report for all users
+     *
+     * @queryParam orderBy string field to order by. Defaults to id support->[id,user_id,full_name,n_i_c]. Example: id
+     * @queryParam sortBy string field to sort by. Defaults to desc support->[desc, asc]. Example: asc
+     * @queryParam groupBy string field to groupBy. Example:gender
+     * @queryParam limit number field to limit the results. Example: 1,10
+     */
     public function allUsersReport(Request $request)
     {
         return $this->userAllReport($request);
     }
 
+    /**
+     * Generate Report for all users with their roles
+     *
+     * @queryParam sortBy string field to sortBy user roles. Defaults to desc support->[desc, asc]. Example:asc
+     * @queryParam limit number field to limit the results. Example: 1,10
+     */
     public function allUsersWithRoles(Request $request)
     {
         return $this->usersReportWithRoles($request);
